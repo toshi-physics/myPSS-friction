@@ -11,20 +11,23 @@ src_dir="$(realpath "${sh_dir}/src")"
 data_dir="$(realpath "${sh_dir}/data")"
 
 if (( $# != 5 )); then
-    echo "Usage: run_model.s model_name lpressure lq ldiffusion lchi"
+    echo "Usage: run_model.s model_name p0 alpha D chi"
     exit 1
 fi
 
 
 model=$1
-lp=$(python3 -c "print('{:.2f}'.format($2))")
-lq=$(python3 -c "print('{:.2f}'.format($3))")
-ld=$(python3 -c "print('{:.2f}'.format($4))")   
-lc=$(python3 -c "print('{:.2f}'.format($5))") 
+p0=$(python3 -c "print('{:.2f}'.format($2))")
+alpha=$(python3 -c "print('{:.2f}'.format($3))")
+D=$(python3 -c "print('{:.2f}'.format($4))")   
+chi=$(python3 -c "print('{:.2f}'.format($5))") 
 
-run=3
-pii=0.1
-gamma0=5.0
+run=1
+pii=0.0
+gamma0=50.0
+gammaxx=1.0
+rgamma=2.0
+gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))") 
 K=5
 rhoseed=2.0
 T=20
@@ -40,12 +43,7 @@ my=100
 dx=1.0
 dy=1.0
 
-alphabygamma=$(python3 -c "print('{:.2f}'.format(($lq)**2))")
-p0bygamma=$(python3 -c "print('{:.2f}'.format(($lp)**2))")       # pressure when cells are close packed, should be very high
-D=$(python3 -c "print('{:.2f}'.format(($ld)**2))")   # Density diffusion coefficient in density dynamics
-chi=$(python3 -c "print('{:.2f}'.format(($lc)**2))")
-
-save_dir="${sh_dir}/data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}_pi_${pii}/lp_${lp}_lq_${lq}_ld_${ld}_lc_${lc}/run_${run}"
+save_dir="${sh_dir}/data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}_rgamma_${rgamma}/p0_${p0}_alpha_${alpha}_D_${D}_chi_${chi}/run_${run}"
 
 if [ ! -d $save_dir ]; then
     mkdir -p $save_dir
@@ -62,12 +60,14 @@ echo \
     "\"dt_dump\"" : $dt_dump,
     "\"K\"" : $K,
     "\"Gamma0\"" : $gamma0,
-    "\"alphabygamma\"" : $alphabygamma,
+    "\"alpha\"" : $alpha,
+    "\"gammayy\"" : $gammayy,
+    "\"gammaxx\"" : $gammaxx,
     "\"Pi\"" : $pii,
     "\"chi\"": $chi,
     "\"lambda\"": $lambda,
     "\"D\"": $D,
-    "\"p0bygamma\"": $p0bygamma,
+    "\"p0\"": $p0,
     "\"r_p\"":$r_p,
     "\"rhoseed\"" : $rhoseed,
     "\"rho_in\"" : $rho_in,
@@ -80,6 +80,6 @@ echo \
 }
 " > $params_file
 
-#python3 -m models.$model -s $save_dir
-#python3 -m src.analysis.create_avgs -s $save_dir
+python3 -m models.$model -s $save_dir
+python3 -m src.analysis.create_avgs -s $save_dir
 python3 -m src.analysis.create_videos -s $save_dir

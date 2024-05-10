@@ -25,11 +25,13 @@ def main():
     n_steps   = int(parameters["n_steps"])  # number of time steps
     K         = parameters["K"]        # elastic constant, sets diffusion lengthscale of S with Gamma0
     Gamma0    = parameters["Gamma0"]   # rate of Q alignment with mol field H
-    alphabygamma = parameters["alphabygamma"]    # active contractile stress
+    gammaxx   = parameters["gammaxx"]
+    gammayy   = parameters["gammayy"]
+    alpha     = parameters["alpha"]    # active contractile stress
     chi       = parameters["chi"]      # coefficient of density gradients in Q's free energy
     D         = parameters["D"]        # Density diffusion coefficient in density dynamics
     lambd     = parameters["lambda"]   # flow alignment parameter
-    p0bygamma = parameters["p0bygamma"]       # pressure when cells are close packed, should be very high
+    p0        = parameters["p0"]       # pressure when cells are close packed, should be very high
     Pii       = parameters["Pi"]       # strength of alignment
     rho_in    = parameters["rho_in"]   # isotropic to nematic transition density, or "onset of order in the paper"
     rho_seed  = parameters["rhoseed"] /rho_in     # seeding density, normalised by 100 mm^-2
@@ -101,7 +103,7 @@ def main():
     system.create_term("rho_end", [("Ident", None)], [rho_iso, 0, 0, 0, 0])
     system.create_term("rho_end", [("S2", None)], [(rho_nem-rho_iso), 0, 0, 0, 0])
     # Define Pressure
-    system.create_term("pressure", [("rho", (np.exp, None))], [p0bygamma, 0, 0, 0, 0])
+    system.create_term("pressure", [("rho", (np.exp, None))], [p0, 0, 0, 0, 0])
     system.create_term("iqxp", [("pressure", None)], [1, 0, 1, 0, 0])
     system.create_term("iqyp", [("pressure", None)], [1, 0, 0, 1, 0])
     # Define rho minus rho_end
@@ -129,13 +131,13 @@ def main():
     system.create_term("iqxQxy", [("Qxy", None)], [1, 0, 1, 0, 0])
     system.create_term("iqyQxy", [("Qxy", None)], [1, 0, 0, 1, 0])
     # Define vx
-    system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alphabygamma, 0, 0, 0, 0])
-    system.create_term("vx", [('iqyQxy', None), ("rho", (np.power, -1))], [alphabygamma, 0, 0, 0, 0])
-    system.create_term("vx", [('iqxp', None), ("rho", (np.power, -1))], [-1, 0, 0, 0, 0])
+    system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0, 0])
+    system.create_term("vx", [('iqyQxy', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0, 0])
+    system.create_term("vx", [('iqxp', None), ("rho", (np.power, -1))], [-1/gammaxx, 0, 0, 0, 0])
     # Define vy
-    system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alphabygamma, 0, 0, 0, 0])
-    system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alphabygamma, 0, 0, 0, 0])
-    system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1, 0, 0, 0, 0])
+    system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alpha/gammayy, 0, 0, 0, 0])
+    system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alpha/gammayy, 0, 0, 0, 0])
+    system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1/gammayy, 0, 0, 0, 0])
     # Define kappa_a_xy
     system.create_term("kappa_a_xy", [("vx", None)], [0.5, 0, 0, 1, 0]) # iqy vx / 2
     system.create_term("kappa_a_xy", [("vy", None)], [-0.5, 0, 1, 0, 0]) # -iqx vy / 2
@@ -157,11 +159,12 @@ def main():
     system.create_term("rho", [("rho", None)], [-D, 1, 0, 0, 0])
     system.create_term("rho", [("rho", None)], [1, 0, 0, 0, 0])
     system.create_term("rho", [("rho", (np.power, 2)), ("rho_end", (np.power, -1))], [-1, 0, 0, 0, 0])
-    system.create_term("rho", [("pressure", None)], [-1, 1, 0, 0, 0])
+    system.create_term("rho", [("pressure", None)], [1/gammaxx, 0, 2, 0, 0])
+    system.create_term("rho", [("pressure", None)], [1/gammayy, 0, 0, 2, 0])
         # active terms now
-    system.create_term("rho", [("Qxx", None)], [-alphabygamma, 0, 2, 0, 0])
-    system.create_term("rho", [("Qxx", None)], [+alphabygamma, 0, 0, 2, 0])
-    system.create_term("rho", [("Qxy", None)], [-2*alphabygamma, 0, 1, 1, 0])
+    system.create_term("rho", [("Qxx", None)], [-alpha/gammaxx, 0, 2, 0, 0])
+    system.create_term("rho", [("Qxx", None)], [+alpha/gammayy, 0, 0, 2, 0])
+    system.create_term("rho", [("Qxy", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 1, 1, 0])
     #system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0, 0])
 
     # Create terms for Qxx timestepping
@@ -194,7 +197,7 @@ def main():
     #rho.synchronize_momentum()
 
     # Initialise Qxx and Qxy
-    itheta = np.pi * np.random.rand(mx, my)
+    itheta = 2 * np.pi * np.random.rand(mx, my)
     Qxx.set_real(0.1*(np.cos(itheta)))
     Qxx.synchronize_momentum()
     Qxy.set_real(0.1*(np.sin(itheta)))
@@ -211,7 +214,7 @@ def main():
     system.get_field('rho_end_rho').set_real(rho_iso*np.ones(shape=grid_size) - rho.get_real())
     system.get_field('rho_end_rho').synchronize_momentum()
     # Initialise Pressure
-    pressure.set_real(p0bygamma*np.exp(rho.get_real()))
+    pressure.set_real(p0*np.exp(rho.get_real()))
     pressure.synchronize_momentum()
 
     if not os.path.exists(savedir+'/data/'):
