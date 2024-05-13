@@ -83,13 +83,13 @@ def main():
     figvort.colorbar(cvort[0])
     axvort.set_title('Vorticity')
     
-    tbaxrho = figrho.add_axes([0.1, 0.73, 0.04, 0.04])
+    tbaxrho = figrho.add_axes([0.2, 0.93, 0.04, 0.04])
     tbrho = TextBox(tbaxrho, 'time')
-    tbaxv = figrho.add_axes([0.1, 0.73, 0.04, 0.04])
+    tbaxv = figv.add_axes([0.2, 0.93, 0.04, 0.04])
     tbv = TextBox(tbaxv, 'time')
-    tbaxQ = figQ.add_axes([0.1, 0.73, 0.04, 0.04])
+    tbaxQ = figQ.add_axes([0.2, 0.93, 0.04, 0.04])
     tbQ = TextBox(tbaxQ, 'time')    
-    tbaxvort = figvort.add_axes([0.1, 0.73, 0.04, 0.04])
+    tbaxvort = figvort.add_axes([0.2, 0.93, 0.04, 0.04])
     tbvort = TextBox(tbaxvort, 'time')
     
     def plt_snapshot_rho(val):        
