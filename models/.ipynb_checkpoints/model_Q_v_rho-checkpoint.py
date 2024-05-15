@@ -198,9 +198,10 @@ def main():
 
     # Initialise Qxx and Qxy
     itheta = 2 * np.pi * np.random.rand(mx, my)
-    Qxx.set_real(0.1*(np.cos(itheta)))
+    iS = 0.1*np.random.rand(mx, my)
+    Qxx.set_real(iS*(np.cos(itheta)))
     Qxx.synchronize_momentum()
-    Qxy.set_real(0.1*(np.sin(itheta)))
+    Qxy.set_real(iS*(np.sin(itheta)))
     Qxy.synchronize_momentum()
     #set_aster(Qxx, Qxy, grid_size, dr)
 
