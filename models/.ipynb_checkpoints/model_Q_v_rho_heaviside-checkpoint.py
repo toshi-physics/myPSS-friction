@@ -117,14 +117,14 @@ def main():
     system.create_term("Hxx", [("rho", None), ("S2", None), ("Qxx", None)], [-1, 0, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("Qxx", None)], [-K, 1, 0, 0, 0])
     system.create_term("Hxx", [("rho", None)], [Pii*pxx, 0, 0, 0, 0])
-    system.create_term("Hxx", [("rho", None)], [-chi/2, 0, 2, 0, 0])
-    system.create_term("Hxx", [("rho", None)], [chi/2, 0, 0, 2, 0])
+    system.create_term("Hxx", [("rho", None)], [chi/2, 0, 2, 0, 0])
+    system.create_term("Hxx", [("rho", None)], [-chi/2, 0, 0, 2, 0])
     # Define Hxy
     system.create_term("Hxy", [("Qxy", None)], [-1, 0, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("Qxy", None)], [1, 0, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("S2", None), ("Qxy", None)], [-1, 0, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("Qxy", None)], [-K, 1, 0, 0, 0])
-    system.create_term("Hxy", [("rho", None)], [-chi, 0, 1, 1, 0])
+    system.create_term("Hxy", [("rho", None)], [chi, 0, 1, 1, 0])
     # Define iqxQxx and so on
     system.create_term("iqxQxx", [("Qxx", None)], [1, 0, 1, 0, 0])
     system.create_term("iqyQxx", [("Qxx", None)], [1, 0, 0, 1, 0])
@@ -168,14 +168,14 @@ def main():
     #system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0, 0])
 
     # Create terms for Qxx timestepping
-    system.create_term("Qxx", [("Gamma", (np.heaviside, 0)), ("Hxx", None)], [1, 0, 0, 0, 0])
+    system.create_term("Qxx", [("Gamma", None), ("Gamma", (np.heaviside, 0)), ("Hxx", None)], [1, 0, 0, 0, 0])
     system.create_term("Qxx", [("vx", None), ("iqxQxx", None)], [-1, 0, 0, 0, 0])
     system.create_term("Qxx", [("vy", None), ("iqyQxx", None)], [-1, 0, 0, 0, 0])
     system.create_term("Qxx", [("Qxy", None), ("kappa_a_xy", None)], [2, 0, 0, 0, 0])
     system.create_term("Qxx", [("kappa_s_xx", None)], [lambd, 0, 0, 0, 0])
 
     # Create terms for Qxy timestepping
-    system.create_term("Qxy", [("Gamma", (np.heaviside, 0)), ("Hxy", None)], [1, 0, 0, 0, 0])
+    system.create_term("Qxy", [("Gamma", None), ("Gamma", (np.heaviside, 0)), ("Hxy", None)], [1, 0, 0, 0, 0])
     system.create_term("Qxy", [("vx", None), ("iqxQxy", None)], [-1, 0, 0, 0, 0])
     system.create_term("Qxy", [("vy", None), ("iqyQxy", None)], [-1, 0, 0, 0, 0])
     system.create_term("Qxy", [("Qxx", None), ("kappa_a_xy", None)], [-2, 0, 0, 0, 0])
