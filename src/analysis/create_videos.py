@@ -171,7 +171,7 @@ def pixelate(x, gridpoints):
     ret = np.zeros(np.shape(x))
     for cx in np.arange(nx):
         for cy in np.arange(ny):
-            ret[cx, cy] += np.average(xpad[cx:cx+1+2*gridpoints, cy:cy+1+2*gridpoints])
+            ret[cx, cy] += np.average(xpad[cx:cx+2*gridpoints, cy:cy+2*gridpoints])
     ret = ret[gridpoints:-1:gridpoints, gridpoints:-1:gridpoints]
     return ret
 
