@@ -10,8 +10,8 @@ src_dir="$(realpath "${sh_dir}/src")"
 
 data_dir="$(realpath "${sh_dir}/data")"
 
-if (( $# != 5 )); then
-    echo "Usage: run_model.s model_name p0 alpha D chi"
+if (( $# != 7 )); then
+    echo "Usage: run_model.s model_name p0 alpha D chi rhoseed run"
     exit 1
 fi
 
@@ -20,23 +20,23 @@ model=$1
 p0=$(python3 -c "print('{:.2f}'.format($2))")
 alpha=$(python3 -c "print('{:.2f}'.format($3))")
 D=$(python3 -c "print('{:.2f}'.format($4))")   
-chi=$(python3 -c "print('{:.2f}'.format($5))") 
+chi=$(python3 -c "print('{:.2f}'.format($5))")
+rhoseed=$(python3 -c "print('{:.1f}'.format($6))")
+run=$(python3 -c "print('{:d}'.format($7))")
 
-run=3
 pii=0.0
-gamma0=150.0
+gamma0=50.0
 gammaxx=1.0
-rgamma=5.0
+rgamma=2.0
 gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))") 
 K=5
-rhoseed=3.5
 T=20
 n_steps=2e+5
 dt_dump=0.01
 lambda=5
 r_p=1
 rho_in=3.2
-rhoisoend=3.75
+rhoisoend=4.5
 rhonemend=6.0
 mx=100
 my=100

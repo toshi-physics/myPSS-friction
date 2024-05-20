@@ -165,7 +165,7 @@ def main():
     system.create_term("rho", [("Qxx", None)], [-alpha/gammaxx, 0, 2, 0, 0])
     system.create_term("rho", [("Qxx", None)], [+alpha/gammayy, 0, 0, 2, 0])
     system.create_term("rho", [("Qxy", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 1, 1, 0])
-    #system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0, 0])
+    system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0, 0])
 
     # Create terms for Qxx timestepping
     system.create_term("Qxx", [("Gamma", None), ("Gamma", (np.heaviside, 0)), ("Hxx", None)], [1, 0, 0, 0, 0])

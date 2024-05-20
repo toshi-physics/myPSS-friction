@@ -57,22 +57,24 @@ def main():
     vx = np.loadtxt(savedir+'/data/'+'vx.csv.{:d}'.format(n), delimiter=',')
     vy = np.loadtxt(savedir+'/data/'+'vy.csv.{:d}'.format(n), delimiter=',')
     #pixelate fields because the point density is too high
-    vx = pixelate(vx, p_factor)
-    vy = pixelate(vy, p_factor)
+    #vx = pixelate(vx, p_factor)
+    #vy = pixelate(vy, p_factor)
     v  = np.sqrt(vx**2 + vy**2)
-    #vx = np.where(v==0, vx, vx/v)
-    #vy = np.where(v==0, vy, vy/v)
     S = np.sqrt(Qxx**2+Qxy**2)
-    Sp = pixelate(S, p_factor)
-    theta = pixelate(np.arctan2(Qxy, Qxx)/2, p_factor)
+    pxv = xv[p_factor:-1:p_factor, p_factor:-1:p_factor]
+    pyv = yv[p_factor:-1:p_factor, p_factor:-1:p_factor]
+    pvx = vx[p_factor:-1:p_factor, p_factor:-1:p_factor]
+    pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
+    #Sp = pixelate(S, p_factor)
+    theta = np.arctan2(Qxy, Qxx)/2
     nx    = np.cos(theta)
     ny    = np.sin(theta)
     vscale = 0.1
     
-    crho = [axrho.pcolormesh(xv, yv, rho, cmap='viridis', vmin=0, vmax=1.8), axrho.quiver(xv[p_factor:-1:p_factor, p_factor:-1:p_factor], yv[p_factor:-1:p_factor, p_factor:-1:p_factor],vx,vy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
-    cv   = [axv.pcolormesh(xv[p_factor:-1:p_factor, p_factor:-1:p_factor], yv[p_factor:-1:p_factor, p_factor:-1:p_factor], v, cmap='viridis', vmin=-1.0, vmax=1.0), axv.quiver(xv[p_factor:-1:p_factor, p_factor:-1:p_factor], yv[p_factor:-1:p_factor, p_factor:-1:p_factor],vx,vy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
-    cQ   = [axQ.pcolormesh(xv, yv, S, cmap='viridis', vmin=0, vmax=1), axQ.quiver(xv[p_factor:-1:p_factor, p_factor:-1:p_factor], yv[p_factor:-1:p_factor, p_factor:-1:p_factor],Sp*nx,Sp*ny, color='w', pivot='middle', headlength=0, headaxislength=0)]
-    cvort= [axvort.pcolormesh(xv, yv, curldivQ, vmin=-0.1, vmax=0.1), axvort.quiver(xv[p_factor:-1:p_factor, p_factor:-1:p_factor], yv[p_factor:-1:p_factor, p_factor:-1:p_factor],vx,vy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
+    crho = [axrho.pcolormesh(xv, yv, rho, cmap='viridis', vmin=0, vmax=1.8), axrho.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
+    cv   = [axv.pcolormesh(xv, yv, v, cmap='viridis', vmin=-1.0, vmax=1.0), axv.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
+    cQ   = [axQ.pcolormesh(xv, yv, S, cmap='viridis', vmin=0, vmax=1), axQ.quiver(pxv, pyv,(S*nx)[p_factor:-1:p_factor, p_factor:-1:p_factor], (S*ny)[p_factor:-1:p_factor, p_factor:-1:p_factor], color='w', pivot='middle', headlength=0, headaxislength=0)]
+    cvort= [axvort.pcolormesh(xv, yv, curldivQ, vmin=-0.1, vmax=0.1), axvort.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
 
     figrho.colorbar(crho[0])
     axrho.set_title(r"$\rho$")
@@ -96,14 +98,11 @@ def main():
         rho = np.loadtxt(savedir+'/data/'+'rho.csv.{:d}'.format(val), delimiter=',')
         vx = np.loadtxt(savedir+'/data/'+'vx.csv.{:d}'.format(val), delimiter=',')
         vy = np.loadtxt(savedir+'/data/'+'vy.csv.{:d}'.format(val), delimiter=',')
-        vx = pixelate(vx, p_factor)
-        vy = pixelate(vy, p_factor)
-        #v  = np.sqrt(vx**2 + vy**2)
-        #vx = np.where(v==0, vx, vx/v)
-        #vy = np.where(v==0, vy, vy/v)
+        pvx = vx[p_factor:-1:p_factor, p_factor:-1:p_factor]
+        pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
         
         crho[0].set_array(rho)
-        crho[1].set_UVC(vx, vy)
+        crho[1].set_UVC(pvx, pvy)
         tbrho.set_val(round(times[val],2))
         
         figrho.canvas.draw_idle()
@@ -111,14 +110,14 @@ def main():
     def plt_snapshot_v(val):        
         vx = np.loadtxt(savedir+'/data/'+'vx.csv.{:d}'.format(val), delimiter=',')
         vy = np.loadtxt(savedir+'/data/'+'vy.csv.{:d}'.format(val), delimiter=',')
-        vx = pixelate(vx, p_factor)
-        vy = pixelate(vy, p_factor)
+        pvx = vx[p_factor:-1:p_factor, p_factor:-1:p_factor]
+        pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
         v  = np.sqrt(vx**2 + vy**2)
         #vx = np.where(v==0, vx, vx/v)
         #vy = np.where(v==0, vy, vy/v)
         
         cv[0].set_array(v)
-        cv[1].set_UVC(vx, vy)
+        cv[1].set_UVC(pvx, pvy)
         tbv.set_val(round(times[val],2))
         
         figv.canvas.draw_idle()
@@ -127,13 +126,12 @@ def main():
         Qxx = np.loadtxt(savedir+'/data/'+'Qxx.csv.{:d}'.format(val), delimiter=',')
         Qxy = np.loadtxt(savedir+'/data/'+'Qxy.csv.{:d}'.format(val), delimiter=',')
         S = np.sqrt(Qxx**2+Qxy**2)
-        Sp = pixelate(S, p_factor)
-        theta = pixelate(np.arctan2(Qxy, Qxx)/2, p_factor)
+        theta = np.arctan2(Qxy, Qxx)/2
         nx    = np.cos(theta)
         ny    = np.sin(theta)
         
         cQ[0].set_array(S)
-        cQ[1].set_UVC(Sp*nx, Sp*ny)
+        cQ[1].set_UVC((S*nx)[p_factor:-1:p_factor, p_factor:-1:p_factor], (S*ny)[p_factor:-1:p_factor, p_factor:-1:p_factor])
         tbQ.set_val(round(times[val],2))
 
         figQ.canvas.draw_idle()
@@ -142,11 +140,11 @@ def main():
         curldivQ = np.loadtxt(savedir+'/data/'+'curldivQ.csv.{:d}'.format(val), delimiter=',')
         vx = np.loadtxt(savedir+'/data/'+'vx.csv.{:d}'.format(val), delimiter=',')
         vy = np.loadtxt(savedir+'/data/'+'vy.csv.{:d}'.format(val), delimiter=',')
-        vx = pixelate(vx, p_factor)
-        vy = pixelate(vy, p_factor)
+        pvx = vx[p_factor:-1:p_factor, p_factor:-1:p_factor]
+        pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
         
         cvort[0].set_array(curldivQ)
-        cvort[1].set_UVC(vx, vy)
+        cvort[1].set_UVC(pvx, pvy)
         tbvort.set_val(round(times[val],2))
 
         figvort.canvas.draw_idle()
