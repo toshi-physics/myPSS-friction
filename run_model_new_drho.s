@@ -36,14 +36,14 @@ dt_dump=0.01
 lambda=5
 r_p=1
 rho_in=3.2
-rhoisoend=4.5
-rhonemend=6.0
+rhoisoend=3.75
+rhonemend=10.0
 mx=100
 my=100
 dx=1.0
 dy=1.0
 
-save_dir="${sh_dir}/data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}_rgamma_${rgamma}/p0_${p0}_alpha_${alpha}_D_${D}_chi_${chi}/run_${run}"
+save_dir="${sh_dir}/new_drho_data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}_rgamma_${rgamma}/p0_${p0}_alpha_${alpha}_D_${D}_chi_${chi}/run_${run}"
 
 if [ ! -d $save_dir ]; then
     mkdir -p $save_dir

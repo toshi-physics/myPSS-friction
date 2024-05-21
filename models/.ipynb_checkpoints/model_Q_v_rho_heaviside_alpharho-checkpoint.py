@@ -86,6 +86,9 @@ def main():
     system.create_field('iqyQxx', k_list, k_grids, dynamic=False)
     system.create_field('iqxQxy', k_list, k_grids, dynamic=False)
     system.create_field('iqyQxy', k_list, k_grids, dynamic=False)
+    system.create_field('iqx2Qxx', k_list, k_grids, dynamic=False)
+    system.create_field('iqy2Qxx', k_list, k_grids, dynamic=False)
+    system.create_field('iqxiqyQxy', k_list, k_grids, dynamic=False)
 
     system.create_field('charge', k_list, k_grids, dynamic=False)
     system.create_field('curldivQ', k_list, k_grids, dynamic=False)
@@ -130,13 +133,16 @@ def main():
     system.create_term("iqyQxx", [("Qxx", None)], [1, 0, 0, 1, 0])
     system.create_term("iqxQxy", [("Qxy", None)], [1, 0, 1, 0, 0])
     system.create_term("iqyQxy", [("Qxy", None)], [1, 0, 0, 1, 0])
+    system.create_term("iqx2Qxx", [("Qxx", None)], [1, 0, 2, 0, 0])
+    system.create_term("iqy2Qxx", [("Qxx", None)], [1, 0, 0, 2, 0])
+    system.create_term("iqxiqyQxy", [("Qxy", None)], [1, 0, 1, 1, 0])
     # Define vx
-    system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0, 0])
-    system.create_term("vx", [('iqyQxy', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0, 0])
+    system.create_term("vx", [('iqxQxx', None)], [alpha/gammaxx, 0, 0, 0, 0])
+    system.create_term("vx", [('iqyQxy', None)], [alpha/gammaxx, 0, 0, 0, 0])
     system.create_term("vx", [('iqxp', None), ("rho", (np.power, -1))], [-1/gammaxx, 0, 0, 0, 0])
     # Define vy
-    system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alpha/gammayy, 0, 0, 0, 0])
-    system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alpha/gammayy, 0, 0, 0, 0])
+    system.create_term("vy", [('iqxQxy', None)], [alpha/gammayy, 0, 0, 0, 0])
+    system.create_term("vy", [('iqyQxx', None)], [-alpha/gammayy, 0, 0, 0, 0])
     system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1/gammayy, 0, 0, 0, 0])
     # Define kappa_a_xy
     system.create_term("kappa_a_xy", [("vx", None)], [0.5, 0, 0, 1, 0]) # iqy vx / 2
@@ -162,9 +168,9 @@ def main():
     system.create_term("rho", [("pressure", None)], [1/gammaxx, 0, 2, 0, 0])
     system.create_term("rho", [("pressure", None)], [1/gammayy, 0, 0, 2, 0])
         # active terms now
-    system.create_term("rho", [("Qxx", None)], [-alpha/gammaxx, 0, 2, 0, 0])
-    system.create_term("rho", [("Qxx", None)], [+alpha/gammayy, 0, 0, 2, 0])
-    system.create_term("rho", [("Qxy", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 1, 1, 0])
+    system.create_term("rho", [("iqx2Qxx", None), ("rho", None)], [-alpha/gammaxx, 0, 0, 0, 0])
+    system.create_term("rho", [("iqy2Qxx", None), ("rho", None)], [+alpha/gammayy, 0, 0, 0, 0])
+    system.create_term("rho", [("iqxiqyQxy", None), ("rho", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 0, 0, 0])
     system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0, 0])
 
     # Create terms for Qxx timestepping

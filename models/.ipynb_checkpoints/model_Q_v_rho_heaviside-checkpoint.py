@@ -231,7 +231,6 @@ def main():
             np.savetxt(savedir+'/data/'+'Qxy.csv.'+ str(t//dn_dump), Qxy.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vx.csv.'+ str(t//dn_dump), vx.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vy.csv.'+ str(t//dn_dump), vy.get_real(), delimiter=',')
-            #np.savetxt(savedir+'/data/'+'charge.csv.'+ str(t//dn_dump), charge.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'curldivQ.csv.'+ str(t//dn_dump), curldivQ.get_real(), delimiter=',')
 
 def momentum_grids(grid_size, dr):

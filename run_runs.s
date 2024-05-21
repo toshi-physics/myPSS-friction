@@ -7,10 +7,10 @@ run_end=10
 drun=1
 
 p0=1.0
-alpha=0.1
+alpha=1.0
 D=1
 chi=5
-rhoseed=3.5
+rhoseed=0.5
 
 run=$(python3 -c "print('{:d}'.format($run_start))")
 while (( $(bc <<< "$run <= $run_end") ))
