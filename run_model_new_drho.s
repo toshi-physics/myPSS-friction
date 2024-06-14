@@ -11,30 +11,31 @@ src_dir="$(realpath "${sh_dir}/src")"
 data_dir="$(realpath "${sh_dir}/data")"
 
 if (( $# != 5 )); then
-    echo "Usage: run_model.s model_name p0 alpha D chi"
+    echo "Usage: run_model.s model_name rgamma alpha chi rhoseed"
     exit 1
 fi
 
 
 model=$1
-p0=$(python3 -c "print('{:.2f}'.format($2))")
+rgamma=$(python3 -c "print('{:.2f}'.format($2))")
 alpha=$(python3 -c "print('{:.2f}'.format($3))")
-D=$(python3 -c "print('{:.2f}'.format($4))")   
-chi=$(python3 -c "print('{:.2f}'.format($5))") 
+chi=$(python3 -c "print('{:.2f}'.format($4))")
+rhoseed=$(python3 -c "print('{:.2f}'.format($5))")
 
 run=1
-pii=0.0
 gamma0=50.0
 gammaxx=1.0
-rgamma=2.0
-gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))") 
-K=5
-rhoseed=0.5
-T=20
-n_steps=2e+5
+p0=0.01
+gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))")
+a=50
+b=0
+d=1
+rho_c=3.5
+K=1
+T=10
+n_steps=1e+5
 dt_dump=0.01
 lambda=5
-r_p=1
 rho_in=3.2
 rhoisoend=3.75
 rhonemend=10.0
@@ -43,7 +44,7 @@ my=100
 dx=1.0
 dy=1.0
 
-save_dir="${sh_dir}/new_drho_data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}_rgamma_${rgamma}/p0_${p0}_alpha_${alpha}_D_${D}_chi_${chi}/run_${run}"
+save_dir="${sh_dir}/data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}/rgamma_${rgamma}_alpha_${alpha}_chi_${chi}/run_${run}"
 
 if [ ! -d $save_dir ]; then
     mkdir -p $save_dir
@@ -63,12 +64,13 @@ echo \
     "\"alpha\"" : $alpha,
     "\"gammayy\"" : $gammayy,
     "\"gammaxx\"" : $gammaxx,
-    "\"Pi\"" : $pii,
     "\"chi\"": $chi,
     "\"lambda\"": $lambda,
-    "\"D\"": $D,
+    "\"a\"": $a,
+    "\"b\"": $b,
+    "\"d\"": $d,
+    "\"rho_c\"":$rho_c,
     "\"p0\"": $p0,
-    "\"r_p\"":$r_p,
     "\"rhoseed\"" : $rhoseed,
     "\"rho_in\"" : $rho_in,
     "\"rhoisoend\"" : $rhoisoend,

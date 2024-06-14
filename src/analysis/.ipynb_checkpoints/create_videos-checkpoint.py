@@ -29,15 +29,15 @@ def main():
     my        = np.int32(parameters["my"])
     dx        = np.float32(parameters["dx"])
     dy        = np.float32(parameters["dy"])
-    Lx        = mx*dx/np.sqrt(K)
-    Ly        = my*dy/np.sqrt(K)
+    Lx        = mx*dx
+    Ly        = my*dy
     
     #setup a meshgrid
     tol = 0.001
     
     x   = np.linspace(0+tol, Lx-tol, mx)
     y   = np.linspace(0+tol, Ly-tol, my)
-    xv, yv  = np.meshgrid(x,y)
+    xv, yv  = np.meshgrid(x,y, indexing='ij')
     
     times = np.arange(0, n_dump, 1)*dt_dump
 
@@ -67,13 +67,16 @@ def main():
     pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
     #Sp = pixelate(S, p_factor)
     theta = np.arctan2(Qxy, Qxx)/2
-    nx    = np.cos(theta)
-    ny    = np.sin(theta)
-    vscale = 0.1
+    nx    = np.cos(theta) [p_factor:-1:p_factor, p_factor:-1:p_factor]
+    ny    = np.sin(theta) [p_factor:-1:p_factor, p_factor:-1:p_factor]
+    Snx   = S [p_factor:-1:p_factor, p_factor:-1:p_factor] * nx
+    Sny   = S [p_factor:-1:p_factor, p_factor:-1:p_factor] * ny
+    vscale = 0.05
+    nscale = 0.3
     
-    crho = [axrho.pcolormesh(xv, yv, rho, cmap='viridis', vmin=0, vmax=1.8), axrho.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
-    cv   = [axv.pcolormesh(xv, yv, v, cmap='viridis', vmin=-1.0, vmax=1.0), axv.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
-    cQ   = [axQ.pcolormesh(xv, yv, S, cmap='viridis', vmin=0, vmax=1), axQ.quiver(pxv, pyv,(S*nx)[p_factor:-1:p_factor, p_factor:-1:p_factor], (S*ny)[p_factor:-1:p_factor, p_factor:-1:p_factor], color='w', pivot='middle', headlength=0, headaxislength=0)]
+    crho = [axrho.pcolormesh(xv, yv, rho, cmap='viridis', vmin=0, vmax=2.3), axrho.quiver(pxv, pyv, Snx, Sny, color='b', pivot='middle', headlength=0, headaxislength=0, scale=nscale, scale_units='xy')]
+    cv   = [axv.pcolormesh(xv, yv, v, cmap='viridis', vmin=0, vmax=1.0), axv.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
+    cQ   = [axQ.pcolormesh(xv, yv, S, cmap='viridis', vmin=0, vmax=1), axQ.quiver(pxv, pyv,nx, ny, color='k', pivot='middle', headlength=0, headaxislength=0)]
     cvort= [axvort.pcolormesh(xv, yv, curldivQ, vmin=-0.1, vmax=0.1), axvort.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
 
     figrho.colorbar(crho[0])
@@ -96,13 +99,15 @@ def main():
     
     def plt_snapshot_rho(val):        
         rho = np.loadtxt(savedir+'/data/'+'rho.csv.{:d}'.format(val), delimiter=',')
-        vx = np.loadtxt(savedir+'/data/'+'vx.csv.{:d}'.format(val), delimiter=',')
-        vy = np.loadtxt(savedir+'/data/'+'vy.csv.{:d}'.format(val), delimiter=',')
-        pvx = vx[p_factor:-1:p_factor, p_factor:-1:p_factor]
-        pvy = vy[p_factor:-1:p_factor, p_factor:-1:p_factor]
+        Qxx = np.loadtxt(savedir+'/data/'+'Qxx.csv.{:d}'.format(val), delimiter=',')
+        Qxy = np.loadtxt(savedir+'/data/'+'Qxy.csv.{:d}'.format(val), delimiter=',')
+        S = np.sqrt(Qxx**2+Qxy**2) 
+        theta = np.arctan2(Qxy, Qxx)/2
+        Snx    = (S*np.cos(theta)) [p_factor:-1:p_factor, p_factor:-1:p_factor]
+        Sny    = (S*np.sin(theta)) [p_factor:-1:p_factor, p_factor:-1:p_factor]
         
         crho[0].set_array(rho)
-        crho[1].set_UVC(pvx, pvy)
+        crho[1].set_UVC(Snx, Sny)
         tbrho.set_val(round(times[val],2))
         
         figrho.canvas.draw_idle()
@@ -131,7 +136,7 @@ def main():
         ny    = np.sin(theta)
         
         cQ[0].set_array(S)
-        cQ[1].set_UVC((S*nx)[p_factor:-1:p_factor, p_factor:-1:p_factor], (S*ny)[p_factor:-1:p_factor, p_factor:-1:p_factor])
+        cQ[1].set_UVC(nx[p_factor:-1:p_factor, p_factor:-1:p_factor], ny[p_factor:-1:p_factor, p_factor:-1:p_factor])
         tbQ.set_val(round(times[val],2))
 
         figQ.canvas.draw_idle()
