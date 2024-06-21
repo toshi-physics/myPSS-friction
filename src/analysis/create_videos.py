@@ -75,7 +75,7 @@ def main():
     nscale = 0.3
     
     crho = [axrho.pcolormesh(xv, yv, rho, cmap='viridis', vmin=0, vmax=2.3), axrho.quiver(pxv, pyv, Snx, Sny, color='b', pivot='middle', headlength=0, headaxislength=0, scale=nscale, scale_units='xy')]
-    cv   = [axv.pcolormesh(xv, yv, v, cmap='viridis', vmin=0, vmax=1.0), axv.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
+    cv   = [axv.pcolormesh(xv, yv, v, cmap='viridis', vmin=0, vmax=0.6), axv.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
     cQ   = [axQ.pcolormesh(xv, yv, S, cmap='viridis', vmin=0, vmax=1), axQ.quiver(pxv, pyv,nx, ny, color='k', pivot='middle', headlength=0, headaxislength=0)]
     cvort= [axvort.pcolormesh(xv, yv, curldivQ, vmin=-0.1, vmax=0.1), axvort.quiver(pxv, pyv, pvx, pvy, color='w', pivot='middle', scale=vscale, scale_units='xy')]
 

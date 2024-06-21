@@ -24,11 +24,11 @@ def main():
     dt_dump   = parameters["dt_dump"]
     n_steps   = int(parameters["n_steps"])  # number of time steps
     K         = parameters["K"]        # elastic constant, sets diffusion lengthscale of S with Gamma0
-    C = 400
     Gamma0    = parameters["Gamma0"]   # rate of Q alignment with mol field H
     gammaxx   = parameters["gammaxx"]
     gammayy   = parameters["gammayy"]
     alpha     = parameters["alpha"]    # active contractile stress
+    chi       = parameters["chi"]
     a         = parameters["a"]
     d         = parameters["d"]
     lambd     = parameters["lambda"]   # flow alignment parameter
@@ -64,6 +64,8 @@ def main():
     # Create fields that don't timestep
     system.create_field('Hxx', k_list, k_grids, dynamic=False)
     system.create_field('Hxy', k_list, k_grids, dynamic=False)
+    system.create_field('noiseQxx', k_list, k_grids, dynamic=False)
+    system.create_field('noiseQxy', k_list, k_grids, dynamic=False)
     system.create_field('rho_end', k_list, k_grids, dynamic=False)
     system.create_field('rho_end_rho', k_list, k_grids, dynamic=False)
 
@@ -136,15 +138,21 @@ def main():
     system.create_term("q2Qxx", [("Qxx", None)], [1, 1, 0, 0])
     system.create_term("q2Qxy", [("Qxy", None)], [1, 1, 0, 0])
     # Define Hxx
-    system.create_term("Hxx", [("rho", (np.power, -1)), ("Qxx", None)], [-1, 0, 0, 0])
-    system.create_term("Hxx", [("Qxx", None)], [1, 0, 0, 0])
-    system.create_term("Hxx", [("S2", None), ("Qxx", None)], [-1, 0, 0, 0])
+    system.create_term("Hxx", [("Qxx", None)], [-1, 0, 0, 0])
+    system.create_term("Hxx", [("rho", None), ("Qxx", None)], [1, 0, 0, 0])
+    system.create_term("Hxx", [("rho", None), ("S2", None), ("Qxx", None)], [-1, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("q2Qxx", None)], [-K, 0, 0, 0])
+    system.create_term("Hxx", [("rho", None)], [chi/2, 0, 2, 0])
+    system.create_term("Hxx", [("rho", None)], [-chi/2, 0, 0, 2])
     # Define Hxy
-    system.create_term("Hxy", [("rho", (np.power, -1)), ("Qxy", None)], [-1, 0, 0, 0])
-    system.create_term("Hxy", [("Qxy", None)], [1, 0, 0, 0])
-    system.create_term("Hxy", [("S2", None), ("Qxy", None)], [-1, 0, 0, 0])
+    system.create_term("Hxy", [("Qxy", None)], [-1, 0, 0, 0])
+    system.create_term("Hxy", [("rho", None), ("Qxy", None)], [1, 0, 0, 0])
+    system.create_term("Hxy", [("rho", None), ("S2", None), ("Qxy", None)], [-1, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("q2Qxy", None)], [-K, 0, 0, 0])
+    system.create_term("Hxy", [("rho", None)], [chi, 0, 1, 1])
+    # Define noise in Q
+    system.create_term("noiseQxx", [("noiseQxx", None)], [1, 0, 0, 0])
+    system.create_term("noiseQxy", [("noiseQxy", None)], [1, 0, 0, 0])
     # Define vx
     system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0])
     system.create_term("vx", [('iqyQxy', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0])
@@ -185,21 +193,22 @@ def main():
     system.create_term("rho", [("Qxx", None)], [-alpha/gammaxx, 0, 2, 0])
     system.create_term("rho", [("Qxx", None)], [+alpha/gammayy, 0, 0, 2])
     system.create_term("rho", [("Qxy", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 1, 1])
-    #system.create_term("rho", [("Qxx", None)], [Gamma0*Pii, 1, 0, 0])
 
     # Create terms for Qxx timestepping
-    system.create_term("Qxx", [ ("Hxx", None)], [Gamma0, 0, 0, 0])
-    system.create_term("Qxx", [("vx", None), ("iqxQxx", None)], [-1, 0, 0, 0])
-    system.create_term("Qxx", [("vy", None), ("iqyQxx", None)], [-1, 0, 0, 0])
+    system.create_term("Qxx", [("Hxx", None)], [Gamma0, 0, 0, 0])
+    system.create_term("Qxx", [("vx", None), ("Qxx", None)], [-1, 0, 1, 0])
+    system.create_term("Qxx", [("vy", None), ("Qxx", None)], [-1, 0, 0, 1])
     system.create_term("Qxx", [("Qxy", None), ("kappa_a_xy", None)], [2, 0, 0, 0])
     system.create_term("Qxx", [("kappa_s_xx", None)], [lambd, 0, 0, 0])
+    system.create_term("Qxx", [("noiseQxx", None)], [1, 0, 0, 0])
 
     # Create terms for Qxy timestepping
-    system.create_term("Qxy", [ ("Hxy", None)], [Gamma0, 0, 0, 0])
-    system.create_term("Qxy", [("vx", None), ("iqxQxy", None)], [-1, 0, 0, 0])
-    system.create_term("Qxy", [("vy", None), ("iqyQxy", None)], [-1, 0, 0, 0])
+    system.create_term("Qxy", [("Hxy", None)], [Gamma0, 0, 0, 0])
+    system.create_term("Qxy", [("vx", None), ("Qxy", None)], [-1, 0, 1, 0])
+    system.create_term("Qxy", [("vy", None), ("Qxy", None)], [-1, 0, 0, 1])
     system.create_term("Qxy", [("Qxx", None), ("kappa_a_xy", None)], [-2, 0, 0, 0])
     system.create_term("Qxy", [("kappa_s_xy", None)], [lambd, 0, 0, 0])
+    system.create_term("Qxy", [("noiseQxy", None)], [1, 0, 0, 0])
 
     rho     = system.get_field('rho')
     Qxx     = system.get_field('Qxx')
@@ -231,10 +240,10 @@ def main():
     system.get_field('Ident').set_real(np.ones(shape=grid_size))
     system.get_field('Ident').synchronize_momentum()
     # Noise
-    #system.get_field('Jx_noise').set_real(np.sqrt(a/5)*np.random.normal(size=[mx, my]))
-    #system.get_field('Jx_noise').synchronize_momentum()
-    #system.get_field('Jy_noise').set_real(np.sqrt(a/5)*np.random.normal(size=[mx, my]))
-    #system.get_field('Jy_noise').synchronize_momentum()
+    system.get_field('noiseQxx').set_real(np.sqrt(Gamma0/5)*np.random.normal(size=[mx, my]))
+    system.get_field('noiseQxx').synchronize_momentum()
+    system.get_field('noiseQxy').set_real(np.sqrt(Gamma0/5)*np.random.normal(size=[mx, my]))
+    system.get_field('noiseQxy').synchronize_momentum()
     # Initial Conditions for rho_end
     system.get_field('rho_end').set_real(rho_iso*np.ones(shape=grid_size))
     system.get_field('rho_end').synchronize_momentum()
@@ -253,16 +262,17 @@ def main():
         system.update_system(dt)
 
         #update noise with new terms drawn from normal distribution
-        #system.get_field('Jx_noise').set_real(np.sqrt(a/5)*np.random.normal(size=[mx, my]))
-        #system.get_field('Jx_noise').synchronize_momentum()
-
-        #system.get_field('Jy_noise').set_real(np.sqrt(a/5)*np.random.normal(size=[mx, my]))
-        #system.get_field('Jy_noise').synchronize_momentum()
+        system.get_field('noiseQxx').set_real(np.sqrt(Gamma0/5)*np.random.normal(size=[mx, my]))
+        system.get_field('noiseQxx').synchronize_momentum()
+        system.get_field('noiseQxy').set_real(np.sqrt(2*Gamma0/5)*np.random.normal(size=[mx, my]))
+        system.get_field('noiseQxy').synchronize_momentum()
 
         if t % dn_dump == 0:
             np.savetxt(savedir+'/data/'+'rho.csv.'+ str(t//dn_dump), rho.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'Qxx.csv.'+ str(t//dn_dump), Qxx.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'Qxy.csv.'+ str(t//dn_dump), Qxy.get_real(), delimiter=',')
+            np.savetxt(savedir+'/data/'+'Hxx.csv.'+ str(t//dn_dump), system.get_field('Hxx').get_real(), delimiter=',')
+            np.savetxt(savedir+'/data/'+'Hxy.csv.'+ str(t//dn_dump), system.get_field('Hxy').get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vx.csv.'+ str(t//dn_dump), vx.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vy.csv.'+ str(t//dn_dump), vy.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'curldivQ.csv.'+ str(t//dn_dump), curldivQ.get_real(), delimiter=',')

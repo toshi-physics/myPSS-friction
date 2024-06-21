@@ -161,7 +161,7 @@ def main():
     system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1/gammayy, 0, 0, 0])
-    system.create_term("vx", [('iqymu', None), ("rho", None)], [-1, 0, 0, 0])
+    system.create_term("vy", [('iqymu', None), ("rho", None)], [-1, 0, 0, 0])
     # Define kappa_a_xy
     system.create_term("kappa_a_xy", [("vx", None)], [0.5, 0, 0, 1]) # iqy vx / 2
     system.create_term("kappa_a_xy", [("vy", None)], [-0.5, 0, 1, 0]) # -iqx vy / 2

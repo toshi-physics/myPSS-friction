@@ -23,26 +23,26 @@ chi=$(python3 -c "print('{:.2f}'.format($4))")
 rhoseed=$(python3 -c "print('{:.2f}'.format($5))")
 
 run=2
-gamma0=500.0
-gammaxx=0.01
-p0=0.01
+gamma0=200.0
+gammaxx=1.0
+p0=1.0
 gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))")
-a=50
-b=0
-d=1
-rho_c=3.5
-K=1
-T=15
-n_steps=15e+4
-dt_dump=0.01
-lambda=0
+D=150
+a=30
+b=90
+d=50
+K=5
+T=50
+n_steps=5e+5
+dt_dump=0.1
+lambda=5
 rho_in=3.2
 rhoisoend=3.75
 rhonemend=10.0
 mx=100
 my=100
-dx=1
-dy=1
+dx=1.0
+dy=1.0
 
 save_dir="${sh_dir}/data/$model/gamma0_${gamma0}_rhoseed_${rhoseed}/rgamma_${rgamma}_alpha_${alpha}_chi_${chi}/run_${run}"
 
@@ -69,7 +69,7 @@ echo \
     "\"a\"": $a,
     "\"b\"": $b,
     "\"d\"": $d,
-    "\"rho_c\"":$rho_c,
+    "\"D\"": $D,
     "\"p0\"": $p0,
     "\"rhoseed\"" : $rhoseed,
     "\"rho_in\"" : $rho_in,

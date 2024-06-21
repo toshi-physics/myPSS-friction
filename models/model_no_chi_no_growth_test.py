@@ -24,7 +24,6 @@ def main():
     dt_dump   = parameters["dt_dump"]
     n_steps   = int(parameters["n_steps"])  # number of time steps
     K         = parameters["K"]        # elastic constant, sets diffusion lengthscale of S with Gamma0
-    C = 400
     Gamma0    = parameters["Gamma0"]   # rate of Q alignment with mol field H
     gammaxx   = parameters["gammaxx"]
     gammayy   = parameters["gammayy"]
@@ -136,14 +135,14 @@ def main():
     system.create_term("q2Qxx", [("Qxx", None)], [1, 1, 0, 0])
     system.create_term("q2Qxy", [("Qxy", None)], [1, 1, 0, 0])
     # Define Hxx
-    system.create_term("Hxx", [("Qxx", None)], [-1, 0, 0, 0])
-    system.create_term("Hxx", [("rho", None), ("Qxx", None)], [1, 0, 0, 0])
-    system.create_term("Hxx", [("rho", None), ("S2", None), ("Qxx", None)], [-1, 0, 0, 0])
+    system.create_term("Hxx", [("rho", (np.power, -1)), ("Qxx", None)], [-1, 0, 0, 0])
+    system.create_term("Hxx", [("Qxx", None)], [1, 0, 0, 0])
+    system.create_term("Hxx", [("S2", None), ("Qxx", None)], [-1, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("q2Qxx", None)], [-K, 0, 0, 0])
     # Define Hxy
-    system.create_term("Hxy", [("Qxy", None)], [-1, 0, 0, 0])
-    system.create_term("Hxy", [("rho", None), ("Qxy", None)], [1, 0, 0, 0])
-    system.create_term("Hxy", [("rho", None), ("S2", None), ("Qxy", None)], [-1, 0, 0, 0])
+    system.create_term("Hxy", [("rho", (np.power, -1)), ("Qxy", None)], [-1, 0, 0, 0])
+    system.create_term("Hxy", [("Qxy", None)], [1, 0, 0, 0])
+    system.create_term("Hxy", [("S2", None), ("Qxy", None)], [-1, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("q2Qxy", None)], [-K, 0, 0, 0])
     # Define vx
     system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0])
@@ -154,7 +153,7 @@ def main():
     system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1/gammayy, 0, 0, 0])
-    system.create_term("vx", [('iqymu', None), ("rho", None)], [-1, 0, 0, 0])
+    system.create_term("vy", [('iqymu', None), ("rho", None)], [-1, 0, 0, 0])
     # Define kappa_a_xy
     system.create_term("kappa_a_xy", [("vx", None)], [0.5, 0, 0, 1]) # iqy vx / 2
     system.create_term("kappa_a_xy", [("vy", None)], [-0.5, 0, 1, 0]) # -iqx vy / 2
@@ -265,8 +264,6 @@ def main():
             np.savetxt(savedir+'/data/'+'Qxy.csv.'+ str(t//dn_dump), Qxy.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vx.csv.'+ str(t//dn_dump), vx.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vy.csv.'+ str(t//dn_dump), vy.get_real(), delimiter=',')
-            np.savetxt(savedir+'/data/'+'Hxx.csv.'+ str(t//dn_dump), system.get_field('Hxx').get_real(), delimiter=',')
-            np.savetxt(savedir+'/data/'+'Hxy.csv.'+ str(t//dn_dump), system.get_field('Hxy').get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'curldivQ.csv.'+ str(t//dn_dump), curldivQ.get_real(), delimiter=',')
 
 def momentum_grids(grid_size, dr):
