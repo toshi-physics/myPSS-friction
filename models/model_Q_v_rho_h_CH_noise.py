@@ -34,8 +34,8 @@ def main():
     lambd     = parameters["lambda"]   # flow alignment parameter
     p0        = parameters["p0"]       # pressure when cells are close packed, should be very high
     rho_in    = parameters["rho_in"]   # isotropic to nematic transition density, or "onset of order in the paper"
-    rho_c     = parameters["rho_c"] /rho_in
-    rho_m     = 0.05 #minimum density to be reached while phase separating
+    rho_min   = parameters["rho_min"] /rho_in #minimum density to be reached while phase separating
+    rho_max   = parameters["rho_max"] /rho_in #minimum density to be reached while phase separating
     rho_seed  = parameters["rhoseed"] /rho_in     # seeding density, normalised by 100 mm^-2
     rho_iso   = parameters["rhoisoend"] /rho_in   # jamming density
     rho_nem   = parameters["rhonemend"] /rho_in   # jamming density max for nematic substrate
@@ -64,6 +64,8 @@ def main():
     # Create fields that don't timestep
     system.create_field('Hxx', k_list, k_grids, dynamic=False)
     system.create_field('Hxy', k_list, k_grids, dynamic=False)
+    #system.create_field('noiseQxx', k_list, k_grids, dynamic=False)
+    #system.create_field('noiseQxy', k_list, k_grids, dynamic=False)
     system.create_field('rho_end', k_list, k_grids, dynamic=False)
     system.create_field('rho_end_rho', k_list, k_grids, dynamic=False)
 
@@ -123,9 +125,9 @@ def main():
     system.create_term("rho_end_rho", [("rho", None)], [-1, 0, 0, 0])
     # Define chemical potential for rho, it phase separates into 0 and rho_c
     system.create_term("mu", [("rho", (np.power, 3))], [4, 0, 0, 0])
-    system.create_term("mu", [("rho", (np.power, 2))], [-6*(rho_c+rho_m), 0, 0, 0])
-    system.create_term("mu", [("rho", None)], [2*(rho_c**2 + rho_m**2 + 4*rho_c*rho_m), 0, 0, 0])
-    system.create_term("mu", [("Ident", None)], [-2*(rho_c + rho_m)*rho_c*rho_m, 0, 0, 0])
+    system.create_term("mu", [("rho", (np.power, 2))], [-6*(rho_min+rho_max), 0, 0, 0])
+    system.create_term("mu", [("rho", None)], [2*(rho_max**2 + rho_min**2 + 4*rho_min*rho_max), 0, 0, 0])
+    system.create_term("mu", [("Ident", None)], [-2*(rho_min + rho_max)*rho_min*rho_max, 0, 0, 0])
     system.create_term("mu", [("rho", None)], [d, 1, 0, 0])
     # Define iqxmu and iqymu
     system.create_term("iqxmu", [("mu", None)], [1, 0, 1, 0])
@@ -198,15 +200,15 @@ def main():
 
     # Create terms for Qxx timestepping
     system.create_term("Qxx", [("Gamma", None), ("Gamma", (np.heaviside, 0)), ("Hxx", None)], [1, 0, 0, 0])
-    system.create_term("Qxx", [("vx", None), ("iqxQxx", None)], [-1, 0, 0, 0])
-    system.create_term("Qxx", [("vy", None), ("iqyQxx", None)], [-1, 0, 0, 0])
+    system.create_term("Qxx", [("vx", None), ("Qxx", None)], [-1, 0, 1, 0])
+    system.create_term("Qxx", [("vy", None), ("Qxx", None)], [-1, 0, 0, 1])
     system.create_term("Qxx", [("Qxy", None), ("kappa_a_xy", None)], [2, 0, 0, 0])
     system.create_term("Qxx", [("kappa_s_xx", None)], [lambd, 0, 0, 0])
 
     # Create terms for Qxy timestepping
     system.create_term("Qxy", [("Gamma", None), ("Gamma", (np.heaviside, 0)), ("Hxy", None)], [1, 0, 0, 0])
-    system.create_term("Qxy", [("vx", None), ("iqxQxy", None)], [-1, 0, 0, 0])
-    system.create_term("Qxy", [("vy", None), ("iqyQxy", None)], [-1, 0, 0, 0])
+    system.create_term("Qxy", [("vx", None), ("Qxy", None)], [-1, 0, 1, 0])
+    system.create_term("Qxy", [("vy", None), ("Qxy", None)], [-1, 0, 0, 1])
     system.create_term("Qxy", [("Qxx", None), ("kappa_a_xy", None)], [-2, 0, 0, 0])
     system.create_term("Qxy", [("kappa_s_xy", None)], [lambd, 0, 0, 0])
 
@@ -274,8 +276,8 @@ def main():
             np.savetxt(savedir+'/data/'+'Qxy.csv.'+ str(t//dn_dump), Qxy.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vx.csv.'+ str(t//dn_dump), vx.get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'vy.csv.'+ str(t//dn_dump), vy.get_real(), delimiter=',')
-            np.savetxt(savedir+'/data/'+'Hxx.csv.'+ str(t//dn_dump), system.get_field('Hxx').get_real(), delimiter=',')
-            np.savetxt(savedir+'/data/'+'Hxy.csv.'+ str(t//dn_dump), system.get_field('Hxy').get_real(), delimiter=',')
+            #np.savetxt(savedir+'/data/'+'Hxx.csv.'+ str(t//dn_dump), system.get_field('Hxx').get_real(), delimiter=',')
+            #np.savetxt(savedir+'/data/'+'Hxy.csv.'+ str(t//dn_dump), system.get_field('Hxy').get_real(), delimiter=',')
             np.savetxt(savedir+'/data/'+'curldivQ.csv.'+ str(t//dn_dump), curldivQ.get_real(), delimiter=',')
 
 def momentum_grids(grid_size, dr):

@@ -29,13 +29,14 @@ def main():
     gammayy   = parameters["gammayy"]
     alpha     = parameters["alpha"]    # active contractile stress
     chi       = parameters["chi"]
-    a         = parameters["a"]
+    Kd        = 0.01
+    a         = parameters["a"]/Kd
     d         = parameters["d"]
     lambd     = parameters["lambda"]   # flow alignment parameter
     p0        = parameters["p0"]       # pressure when cells are close packed, should be very high
     rho_in    = parameters["rho_in"]   # isotropic to nematic transition density, or "onset of order in the paper"
-    rho_c     = parameters["rho_c"] /rho_in
-    rho_m     = 0.05 #minimum density to be reached while phase separating
+    rho_min   = parameters["rho_min"]/rho_in #minimum density to be reached while phase separating
+    rho_max   = parameters["rho_max"]/rho_in
     rho_seed  = parameters["rhoseed"] /rho_in     # seeding density, normalised by 100 mm^-2
     rho_iso   = parameters["rhoisoend"] /rho_in   # jamming density
     rho_nem   = parameters["rhonemend"] /rho_in   # jamming density max for nematic substrate
@@ -66,8 +67,6 @@ def main():
     system.create_field('Hxy', k_list, k_grids, dynamic=False)
     system.create_field('noiseQxx', k_list, k_grids, dynamic=False)
     system.create_field('noiseQxy', k_list, k_grids, dynamic=False)
-    system.create_field('rho_end', k_list, k_grids, dynamic=False)
-    system.create_field('rho_end_rho', k_list, k_grids, dynamic=False)
 
     system.create_field('pressure', k_list, k_grids, dynamic=False)
     system.create_field('iqxp', k_list, k_grids, dynamic=False)
@@ -77,8 +76,6 @@ def main():
     system.create_field('S2', k_list, k_grids, dynamic=False)
 
     system.create_field('mu', k_list, k_grids, dynamic=False)
-    system.create_field('iqxmu', k_list, k_grids, dynamic=False)
-    system.create_field('iqymu', k_list, k_grids, dynamic=False)
     #system.create_field('Jx_noise', k_list, k_grids, dynamic=False)
     #system.create_field('Jy_noise', k_list, k_grids, dynamic=False)
     
@@ -111,25 +108,16 @@ def main():
     # Define S2
     system.create_term("S2", [("Qxx", (np.square, None))], [1.0, 0, 0, 0])
     system.create_term("S2", [("Qxy", (np.square, None))], [1.0, 0, 0, 0])
-    # Define RhoEnd
-    system.create_term("rho_end", [("Ident", None)], [rho_iso, 0, 0, 0])
-    system.create_term("rho_end", [("S2", None)], [(rho_nem-rho_iso), 0, 0, 0])
     # Define Pressure
     system.create_term("pressure", [("rho", (np.exp, None))], [p0, 0, 0, 0])
     system.create_term("iqxp", [("pressure", None)], [1, 0, 1, 0])
     system.create_term("iqyp", [("pressure", None)], [1, 0, 0, 1])
-    # Define rho minus rho_end
-    system.create_term("rho_end_rho", [("rho_end", None)], [1, 0, 0, 0])
-    system.create_term("rho_end_rho", [("rho", None)], [-1, 0, 0, 0])
     # Define chemical potential for rho, it phase separates into 0 and rho_c
-    system.create_term("mu", [("rho", (np.power, 3))], [4, 0, 0, 0])
-    system.create_term("mu", [("rho", (np.power, 2))], [-6*(rho_c+rho_m), 0, 0, 0])
-    system.create_term("mu", [("rho", None)], [2*(rho_c**2 + rho_m**2 + 4*rho_c*rho_m), 0, 0, 0])
-    system.create_term("mu", [("Ident", None)], [-2*(rho_c + rho_m)*rho_c*rho_m, 0, 0, 0])
-    system.create_term("mu", [("rho", None)], [d, 1, 0, 0])
-    # Define iqxmu and iqymu
-    system.create_term("iqxmu", [("mu", None)], [1, 0, 1, 0])
-    system.create_term("iqymu", [("mu", None)], [1, 0, 0, 1])
+    system.create_term("mu", [("rho", (np.power, 3))], [4*Kd, 0, 0, 0])
+    system.create_term("mu", [("rho", (np.power, 2))], [-6*Kd*(rho_min+rho_max), 0, 0, 0])
+    system.create_term("mu", [("rho", None)], [2*Kd*(rho_min**2 + rho_max**2 + 4*rho_min*rho_max), 0, 0, 0])
+    system.create_term("mu", [("Ident", None)], [-2*Kd*(rho_min + rho_max)*rho_min*rho_max, 0, 0, 0])
+    system.create_term("mu", [("rho", None)], [d*Kd, 1, 0, 0])
     # Define iqxQxx and so on
     system.create_term("iqxQxx", [("Qxx", None)], [1, 0, 1, 0])
     system.create_term("iqyQxx", [("Qxx", None)], [1, 0, 0, 1])
@@ -138,14 +126,14 @@ def main():
     system.create_term("q2Qxx", [("Qxx", None)], [1, 1, 0, 0])
     system.create_term("q2Qxy", [("Qxy", None)], [1, 1, 0, 0])
     # Define Hxx
-    system.create_term("Hxx", [("Qxx", None)], [-1, 0, 0, 0])
+    system.create_term("Hxx", [("Qxx", None)], [-0.5, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("Qxx", None)], [1, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("S2", None), ("Qxx", None)], [-1, 0, 0, 0])
     system.create_term("Hxx", [("rho", None), ("q2Qxx", None)], [-K, 0, 0, 0])
     system.create_term("Hxx", [("rho", None)], [chi/2, 0, 2, 0])
     system.create_term("Hxx", [("rho", None)], [-chi/2, 0, 0, 2])
     # Define Hxy
-    system.create_term("Hxy", [("Qxy", None)], [-1, 0, 0, 0])
+    system.create_term("Hxy", [("Qxy", None)], [-0.5, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("Qxy", None)], [1, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("S2", None), ("Qxy", None)], [-1, 0, 0, 0])
     system.create_term("Hxy", [("rho", None), ("q2Qxy", None)], [-K, 0, 0, 0])
@@ -157,12 +145,12 @@ def main():
     system.create_term("vx", [('iqxQxx', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0])
     system.create_term("vx", [('iqyQxy', None), ("rho", (np.power, -1))], [alpha/gammaxx, 0, 0, 0])
     system.create_term("vx", [('iqxp', None), ("rho", (np.power, -1))], [-1/gammaxx, 0, 0, 0])
-    system.create_term("vx", [('iqxmu', None), ("rho", None)], [-1, 0, 0, 0])
+    system.create_term("vx", [('mu', None)], [-1/gammaxx, 0, 1, 0])
     # Define vy
     system.create_term("vy", [('iqxQxy', None), ("rho", (np.power, -1))], [alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyQxx', None), ("rho", (np.power, -1))], [-alpha/gammayy, 0, 0, 0])
     system.create_term("vy", [('iqyp', None), ("rho", (np.power, -1))], [-1/gammayy, 0, 0, 0])
-    system.create_term("vy", [('iqymu', None), ("rho", None)], [-1, 0, 0, 0])
+    system.create_term("vy", [('mu', None)], [-1/gammayy, 0, 0, 1])
     # Define kappa_a_xy
     system.create_term("kappa_a_xy", [("vx", None)], [0.5, 0, 0, 1]) # iqy vx / 2
     system.create_term("kappa_a_xy", [("vy", None)], [-0.5, 0, 1, 0]) # -iqx vy / 2
@@ -187,13 +175,9 @@ def main():
     #system.create_term("rho", [("Jx_noise", None)], [-1, 0, 1, 0])
     #system.create_term("rho", [("Jy_noise", None)], [-1, 0, 0, 1])
         # pressure
-    system.create_term("rho", [("pressure", None)], [1/gammaxx, 0, 2, 0])
-    system.create_term("rho", [("pressure", None)], [1/gammayy, 0, 0, 2])
-        # active terms now
-    system.create_term("rho", [("Qxx", None)], [-alpha/gammaxx, 0, 2, 0])
-    system.create_term("rho", [("Qxx", None)], [+alpha/gammayy, 0, 0, 2])
-    system.create_term("rho", [("Qxy", None)], [-alpha*((1/gammaxx) + (1/gammayy)), 0, 1, 1])
-
+    system.create_term("rho", [("vx", None), ("rho", None)], [-1/gammaxx, 0, 1, 0])
+    system.create_term("rho", [("vy", None), ("rho", None)], [-1/gammayy, 0, 0, 1])
+    
     # Create terms for Qxx timestepping
     system.create_term("Qxx", [("Hxx", None)], [Gamma0, 0, 0, 0])
     system.create_term("Qxx", [("vx", None), ("Qxx", None)], [-1, 0, 1, 0])
@@ -244,12 +228,6 @@ def main():
     system.get_field('noiseQxx').synchronize_momentum()
     system.get_field('noiseQxy').set_real(np.sqrt(Gamma0/5)*np.random.normal(size=[mx, my]))
     system.get_field('noiseQxy').synchronize_momentum()
-    # Initial Conditions for rho_end
-    system.get_field('rho_end').set_real(rho_iso*np.ones(shape=grid_size))
-    system.get_field('rho_end').synchronize_momentum()
-    # Initial Conditions for rho_end_rho
-    system.get_field('rho_end_rho').set_real(rho_iso*np.ones(shape=grid_size) - rho.get_real())
-    system.get_field('rho_end_rho').synchronize_momentum()
     # Initialise Pressure
     pressure.set_real(p0*np.exp(rho.get_real()))
     pressure.synchronize_momentum()

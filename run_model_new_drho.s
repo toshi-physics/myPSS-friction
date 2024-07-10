@@ -30,12 +30,13 @@ gammayy=$(python3 -c "print('{:.2f}'.format($gammaxx*$rgamma))")
 a=50
 b=0
 d=1
-rho_c=3.5
+rho_max=4.0
+rho_min=0.2
 K=1
 T=15
-n_steps=15e+4
+n_steps=3e+5
 dt_dump=0.01
-lambda=0
+lambda=5
 rho_in=3.2
 rhoisoend=3.75
 rhonemend=10.0
@@ -69,10 +70,11 @@ echo \
     "\"a\"": $a,
     "\"b\"": $b,
     "\"d\"": $d,
-    "\"rho_c\"":$rho_c,
     "\"p0\"": $p0,
     "\"rhoseed\"" : $rhoseed,
     "\"rho_in\"" : $rho_in,
+    "\"rho_max\"" : $rho_max,
+    "\"rho_min\"" : $rho_min,
     "\"rhoisoend\"" : $rhoisoend,
     "\"rhonemend\"" : $rhonemend,
     "\"mx\"" : $mx,
